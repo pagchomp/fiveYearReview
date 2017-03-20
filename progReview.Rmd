@@ -1,0 +1,14 @@
+---
+output: pdf_document
+---
+
+```{r, echo = FALSE, warning = FALSE, messages = FALSE, results = 'asis', quietly = TRUE}
+library(ggplot2, quietly=TRUE, warn.conflicts=FALSE)
+
+folder <- "P:\\sr analyst b burk\\20170220 Major Nonmajor Surveys\\Digital Animation\\"
+working.file <- "digitalAnimation.csv"
+
+all.fact.lvls <- list(sa.sd.4  <- c(strongly.agree, agree, disagree, strongly.disagree))
+
+wf <- read.csv(paste0(folder, working.file), stringsAsFactors = FALSE, header = F)
+questions <- read.csv(paste0(folder, "questions.txt"), stringsAsFactors = FALSE, header = F, sep = "\n")
