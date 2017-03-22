@@ -1,22 +1,35 @@
 ---
-output: pdf_document
+output: 
+  pdf_document: 
+    fig_height: 5
+    fig_width: 8.5
+geometry: margin=0.25in
 ---
 
 ```{r, echo = FALSE, warning = FALSE, messages = FALSE, results = 'asis', quietly = TRUE}
+
+prog.name <- "Digital Animation"
+
 library(ggplot2, quietly=TRUE, warn.conflicts=FALSE)
+
+cols <- c("#140993", "#d2020b", "#a19cd3", "#ed999d", "#08033a")
+roundUp <- function(x) ceiling(x/10) * 10
 
 folder <- "P:\\sr analyst b burk\\20170220 Major Nonmajor Surveys\\Digital Animation\\"
 working.file <- "digitalAnimation.csv"
 
-all.fact.lvls <- list(c("strongly.agree", "agree", "disagree", "strongly.disagree")
-                      )
-names(all.fact.lvls) <- c("sa.sd.4"
-                          )
+# all.fact.lvls <- list(c("strongly.agree", "agree", "disagree", "strongly.disagree", NA))
+all.fact.lvls <- list(c("Strongly Agree", "Agree", "Disagree", "Strongly Disagree", NA))
+names(all.fact.lvls) <- c("sa.sd.4")
 
 wf <- read.csv(paste0(folder, working.file), stringsAsFactors = FALSE, header = FALSE)
 questions <- read.csv(paste0(folder, "questions.txt"), stringsAsFactors = FALSE, header = F, sep = "\n")
 wf[wf == ""] <- NA
 wf[wf == "BLANK"] <- NA
+wf[wf == "strongly.agree"] <- "Strongly Agree"
+wf[wf == "agree"] <- "Agree"
+wf[wf == "disagree"] <- "Disagree"
+wf[wf == "strongly.disagree"] <- "Strongly Disagree"
 
 # Sorting WF
 wf <- wf[,c(1:9, 18:27, 28:30, 31:32, 10, 13, 15, 16, 11, 12, 14, 17)]
@@ -26,4 +39,37 @@ Q24 <- read.csv(paste0(folder, "24.txt"), stringsAsFactors = FALSE, header = FAL
 Q25 <- read.csv(paste0(folder, "25.txt"), stringsAsFactors = FALSE, header = FALSE)
 Q26 <- read.csv(paste0(folder, "26.txt"), stringsAsFactors = FALSE, header = FALSE)
 Q27 <- read.csv(paste0(folder, "27.txt"), stringsAsFactors = FALSE, header = FALSE)
-names(wf)[23:26] <- paste0("Q", 28:31)
+names(wf)[23:26] <- paste0("QB", 1:4)
+QB5 <- read.csv(paste0(folder, "5.txt"), stringsAsFactors = FALSE, header = FALSE)
+names(wf)[27] <- paste0("QB", 6, "A")
+names(wf)[28] <- paste0("QB", 6, "B")
+names(wf)[29:32] <- paste0("QC", 1:4)
+
+  cat(paste("\n\\newpage\\begin{center}{\\Large Survey Responses for the", prog.name, "Program Review--FY 2017} \\end{center}", "\n"))  
+  
+for(ques in 1:19){
+  curr.ques <- questions[ques,]
+  curr.resp <- data.frame(wf[,ques])
+  names(curr.resp) <- "wf"
+  levels(curr.resp[,1]) <- all.fact.lvls[[1]]
+  curr.resp <- data.frame(table(curr.resp))
+  curr.resp$pct <- round(curr.resp$Freq/sum(curr.resp$Freq)* 100)
+  curr.plot <- ggplot(data = curr.resp, aes(x = curr.resp, y = Freq, fill = curr.resp)) + 
+    geom_bar(width = 0.75, color = "black", stat = "identity") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + 
+    ggtitle(curr.ques) + 
+    scale_fill_manual(values=cols, drop = FALSE) +
+    geom_text(aes(y = Freq, label = paste0(Freq, "\n(", pct, "%)")), 
+                  nudge_y = 2, 
+                  colour = "black", 
+                  fontface = "bold") +
+    xlab("") +
+    ylab("Responses") + 
+    theme(text = element_text(size=10), plot.title = element_text(size=10, hjust = 0.5)) +
+    scale_x_discrete(drop=FALSE) + 
+    ylim(0, roundUp(sum(curr.resp$Freq))) +
+    guides(fill=FALSE)
+  print(curr.plot)
+}
+
